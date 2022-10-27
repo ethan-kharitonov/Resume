@@ -1,0 +1,179 @@
+%------------------------
+% Resume Template
+% Author : Anubhav Singh
+% Github : https://github.com/xprilion
+% License : MIT
+%------------------------
+
+\documentclass[a4paper,20pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[pdftex]{hyperref}
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.530in}
+\addtolength{\evensidemargin}{-0.375in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.45in}
+\addtolength{\textheight}{1in}
+
+\urlstyle{rm}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+	\vspace{-10pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-6pt}]
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[2]{
+	\item\small{
+		\textbf{#1}{: #2 \vspace{-2pt}}
+	}
+}
+
+\newcommand{\resumeItemWithoutTitle}[1]{
+	\item\small{
+		{\vspace{-2pt}}
+	}
+}
+
+\newcommand{\resumeSubheading}[4]{
+	\vspace{-1pt}\item
+	\begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+		\textbf{#1} & #2 \\
+		\textit{#3} & \textit{#4} \\
+	\end{tabular*}\vspace{-5pt}
+}
+
+
+\newcommand{\resumeSubItem}[2]{\resumeItem{#1}{#2}\vspace{-3pt}}
+
+\renewcommand{\labelitemii}{$\circ$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=*]}
+	\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+	\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-----------------------------
+%%%%%%  CV STARTS HERE  %%%%%%
+
+\begin{document}
+	
+	%----------HEADING-----------------
+	\begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+		\textbf{{\LARGE Ethan Kharitonov}} & Email: \href{mailto:}{Ethan.Kharitonov@gmail.com}\\
+		\href{https://github.com/ethan-kharitonov}{Github: ~github.com/ethan-kharitonov} & Mobile:~~647-408-3894 \\
+	\end{tabular*}
+	
+	%-----------EDUCATION-----------------
+	\section{~~Education}
+	\resumeSubHeadingListStart
+	\resumeSubheading
+	{University of Toronto}{}
+	{Computer science specialist, Mathematics major;  cGPA: 3.95}{September 2021 - April 2025}
+	{\scriptsize \textit{ \footnotesize{\newline{}\textbf{Second year student, Dean's List for both semesters first year.}}}}
+	{\scriptsize \textit{ \footnotesize{\newline{}\textbf{Notable courses:} Fundementals of Computer Science I and II, Theory of Computation, Analysis I and II, Abstract Algebra I and II, Software Design}}}
+	\resumeSubheading
+	{Stephen Lewis Secondary School}{}
+	{Earned an Ontario Secondary School Diploma with Honors }{September 2017 - June 2021}
+	{\scriptsize \textit{ \footnotesize{\newline{}\textbf{98\% avarage}}}}
+	\resumeSubHeadingListEnd
+	
+	\vspace{-5pt}
+	\section{Skills/Interests Summary}
+	\resumeSubHeadingListStart
+	\resumeSubItem{Professional interests}{~~~~~~~~Math, Game design, Cryptology, Machine learning and AI}
+	\resumeSubItem{Languages}{~~~~~~C\#, Python, Java, JavaScript, SQL Server (beginner)}
+	\resumeSubItem{Frameworks}{~~~~React, Asp.Net Core, Entity Framework, SignalR}
+	\resumeSubItem{Tools}{~~~~~~~~~~~~~~GIT, \LaTeX, Azure boards, Nunit, Pytest}
+	
+	\resumeSubHeadingListEnd
+	\vspace{-5pt}
+	\section{Experience}
+	\resumeSubHeadingListStart
+	\resumeSubheading{Ceridian}{}
+	{Developer Intern (Full-time)}{May 2022 - present}
+	\resumeItemListStart
+	\resumeItem{Full stack website}
+	{Developed front end in React and back end in Asp.Net Core and Entity Framework. Deployed the site to IIS using azure pipelines. Realtime updates done using SignalR}
+	\resumeItem{Automation Tests}
+	{Wrote automation tests using TenserFlow. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
+	\resumeItemListEnd
+	\vspace{-5pt}
+	\resumeSubheading
+	{JRoots Supplementary Hebrew School}{}
+	{Teacher Assistant (Part-time)}{September 2019 -  March 2020}
+	\resumeItemListStart
+	\item\small{
+		{Helped students learn the Hebrew alphabet as well as basic reading/writing skills}
+	}
+	\item\small{
+		{Led activities for students.}
+	}
+	\item\small{
+		{Kept classrooms clean and organized.}
+	}
+	\item\small{
+		{Was responsible for over 20 students ages 5 - 10 on many occasions. }
+	}
+	\resumeItemListEnd
+	
+	\resumeSubHeadingListEnd
+	
+	%-----------PROJECTS-----------------
+	\vspace{-5pt}
+	\section{Projects}
+	\resumeSubHeadingListStart
+	\resumeSubItem{2D Shooter Game}{A birds eye view tank shooter written using the C\# MonoGame framework. The objective is to set a high score by destroying enemy tanks. There are six types of enemy tanks each with unique properties such as speed, weapon type, movement style and esthetics. Players can purchase different types of power-ups and weapons. \href{https://github.com/ethan-kharitonov/ISU-ButTanksThisTime}{github.com/ethan-kharitonov/ISU-ButTanksThisTime}}
+	\vspace{2pt}
+	\resumeSubItem{Level Based Platformer Game:}{A puzzle platformer written using the C\# MonoGame framework. The game consists of levels where the player must reach the door on the other end of the map. They must collect the key and gems. The catch is that the player must input the movements of the character before executing them and watching them play out. \href{https://github.com/ethan-kharitonov/PASS4-Monogame}{github.com/ethan-kharitonov/PASS4-Monogame}}
+	\vspace{2pt}
+	\resumeSubItem{Several Other smaller projects written in C\#, Python, Java and Javascript}{Maze generator, SHA256 implementation and a simple graphing calculator.}
+	\vspace{2pt}
+	\resumeSubHeadingListEnd
+	\vspace{-5pt}
+
+	%-----------Awards-----------------
+	\section{Honors and Awards}
+	\begin{description}[font=$\bullet$]
+		\item {\textbf{Excelence in mathematics Award (x3):} Awarded for a grade above 95\% in any grade 12 mathematics course.}
+		\vspace{-5pt}
+		\item {\textbf{Excelence in Physics Award:} Awarded for a grade above 95\% in grade 12 physics.}
+		\vspace{-5pt}
+		\item {\textbf{Excelence in Computer Science Award (x3):} Awarded for a grade above 95\% in grade 12 computer science.}
+		
+	\end{description}
+	
+	\vspace{-5pt}
+	\section{Additional Information}
+	\resumeSubHeadingListStart
+	\resumeSubheading
+	{Languages}{}
+	{Fluent in English, Russian and Hebrew}{}
+	\vspace{5pt}
+	% \vspace{10pt}\textbf{\large{Community Experience}}
+	\resumeSubHeadingListEnd
+	\begin{center}
+		Refrences: available upon request.
+	\end{center}
+	
+\end{document}
