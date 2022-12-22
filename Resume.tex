@@ -69,9 +69,9 @@
 \renewcommand{\labelitemii}{$\circ$}
 
 \newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=*]}
-	\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
 \newcommand{\resumeItemListStart}{\begin{itemize}}
-	\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
 
 %-----------------------------
 %%%%%%  CV STARTS HERE  %%%%%%
@@ -81,7 +81,9 @@
 	%----------HEADING-----------------
 	\begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
 		\textbf{{\LARGE Ethan Kharitonov}} & \href{mailto:}{Ethan.Kharitonov@gmail.com}\\
-		\href{https://github.com/ethan-kharitonov}{Github: ~github.com/ethan-kharitonov} & ~~647-408-3894 \\
+		\href{https://github.com/ethan-kharitonov}{Github: ~github.com/ethan-kharitonov} & 
+		~~647-408-3894 \\
+		\href{www.linkedin.com/in/ethan-kharitonov}{Linkedin: ~www.linkedin.com/in/ethan-kharitonov} &
 	\end{tabular*}
 	
 	%-----------EDUCATION-----------------
@@ -89,9 +91,9 @@
 	\resumeSubHeadingListStart
 	\resumeSubheading
 	{University of Toronto}{}
-	{Computer Science Specialist, Mathematics Major;  cGPA: 3.95}{September 2021 - April 2025}
+	{Computer Science Specialist, Mathematics Major;  cGPA: 3.95/4.00}{September 2021 - April 2025}
 	{\scriptsize \textit{ \footnotesize{\newline{}\textbf{Second-year student, Dean's List for both semesters of the first year}}}}
-	{\scriptsize \textit{ \footnotesize{\newline{}\textbf{Notable courses:} Fundamentals of Computer Science I and II, Theory of Computation, Analysis I and II, Abstract Algebra I, Software Design, currently taking Analysis II and Statistics I}}}
+	{\scriptsize \textit{ \footnotesize{\newline{}\textbf{Notable courses:} Fundamentals of Computer Science I and II, Theory of Computation, Analysis I, Abstract Algebra I and II, Software Design, currently taking Analysis II and Statistics I}}}
 	\resumeSubheading
 	{Stephen Lewis Secondary School}{}
 	{Earned an Ontario Secondary School Diploma with Honors }{September 2017 - June 2021}
@@ -103,53 +105,48 @@
 	\resumeSubHeadingListStart
 	\resumeSubItem{Professional interests}{Math, Game design, Cryptology, Machine learning and AI}
 	\resumeSubItem{Languages}{C\#, Python, Java, JavaScript, CSS, HTML, SQL Server (beginner)}
-	\resumeSubItem{Frameworks}{React, Asp.Net Core, Entity Framework, SignalR}
+	\resumeSubItem{Frameworks}{React, ASP.NET Core, Entity Framework, SignalR}
 	\resumeSubItem{Tools}{GIT, \LaTeX, Azure boards, Xunit, Pytest}
 	
 	\resumeSubHeadingListEnd
 	\vspace{-5pt}
 	\section{Experience}
-	\resumeSubHeadingListStart
-	\resumeSubheading{Ceridian}{}
-	{Developer Intern}{May 2022 - present}
+	\vspace{-1pt}
+	\begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+		\textbf{Ceridian} & \\
+		\textit{Developer Intern} & \textit{May 2022 - December 2022} \\
+	\end{tabular*}\vspace{-5pt}
 	\resumeItemListStart
-	\resumeItem{Developed full stack web application}
-	{Facilitated the development of a productivity tool used daily by the QA team to make testing more efficient. Wrote front-end in React and back-end using ASP.NET Core and Entity Framework. Implemented real-time updates using SignalR. Deployed the site to IIS using Azure Pipelines.}
-	\resumeItem{Wrote automation tests}
-	{Used TenserFlow to test different features of the Dayforce website\\ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
+	\item\small{Facilitated the development of a productivity tool used daily by the QA team to make testing more efficient. \vspace{-8pt}}
+	\item\small{Developed \textbf{React} application using \textbf{React Router} and the \textbf{Material UI} component library. \vspace{-8pt}}
+	\item\small{Developed an API using \textbf{ASP.NET Core} and \textbf{Entity Framework}. \vspace{-8pt}}
+	\item\small{Implemented real time updates in react using the \textbf{SignalR} library. \vspace{-8pt}}
+	\item\small{Deployed the API and react app to \textbf{IIS} using \textbf{Azure Pipelines}. }
 	\resumeItemListEnd
-	\vspace{-5pt}
-	\resumeSubheading
-	{JRoots Supplementary Hebrew School}{}
-	{Teacher Assistant}{September 2019 -  March 2020}
+
+	\begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+		\textbf{JRoots Supplementary Hebrew School} & \\
+		\textit{Teacher Assistant} & \textit{September 2019 -  March 2020} \\
+	\end{tabular*}\vspace{-5pt}
 	\resumeItemListStart
-	\item\small{
-		{Helped students learn the Hebrew alphabet as well as basic reading/writing skills}
-	}
-	\item\small{
-		{Led activities for students}
-	}
-	\item\small{
-		{Kept classrooms clean and organized}
-	}
-	\item\small{
-		{Was responsible for over 20 students ages 5 - 10 on many occasions}
-	}
+	\item\small{Helped students learn the Hebrew alphabet as well as basic reading/writing skills. \vspace{-8pt}}
+	\item\small{Led activities for students. \vspace{-8pt}}
+	\item\small{Kept classrooms clean and organized. \vspace{-8pt}}
+	\item\small{Was responsible for over 20 students ages 5 - 10 on many occasions.}
 	\resumeItemListEnd
 	
-	\resumeSubHeadingListEnd
 	
 	%-----------PROJECTS-----------------
 	\vspace{-5pt}
 	\section{Projects}
 	\resumeSubHeadingListStart
-	\resumeSubItem{2D Shooter Game}{A birds eye view tank shooter written using the C\# MonoGame framework. The objective is to set a high score by destroying enemy tanks. There are six types of enemy tanks each with unique properties such as speed, weapon type, movement style and esthetics. Players can purchase different types of power-ups and weapons. \href{https://github.com/ethan-kharitonov/ISU-ButTanksThisTime}{github.com/ethan-kharitonov/ISU-ButTanksThisTime}}
+	\resumeSubItem{2D Shooter Game}{A bird's eye view tank shooter written using the \textbf{C\# MonoGame framework}. The objective is to set a high score by destroying enemy tanks. There are six types of enemy tanks each with unique properties such as speed, weapon type, movement style and esthetics. Players can purchase different types of power-ups and weapons. \href{https://github.com/ethan-kharitonov/ISU-ButTanksThisTime}{github.com/ethan-kharitonov/ISU-ButTanksThisTime}}
 	\vspace{2pt}
-	\resumeSubItem{Level Based Platformer Game:}{A puzzle platformer written using the C\# MonoGame framework. The game consists of levels where the player must reach the door on the other end of the map. They must collect the key and gems. The catch is that the player must input the movements of the character before executing them and watching them play out. \href{https://github.com/ethan-kharitonov/PASS4-Monogame}{github.com/ethan-kharitonov/PASS4-Monogame}}
-	\resumeSubItem{Tweet Sentiment Analyzer}{Used the Twitter API to collect over 200,000 tweets that mention vaccines in any way, then used a python sentiment analysis library (NLTK) to determine whether the tweet is criticizing or approving of vaccines. Used the plotly graphing library to plot the average sentiment on any given day over the span of two years.
-	\href{https://github.com/ethan-kharitonov/CSC110/tree/main/projects/covax}{https://github.com/ethan-kharitonov/CSC110/tree/main/projects/covax}}
+	\resumeSubItem{Level Based Platformer Game:}{A puzzle platformer written using the \textbf{C\# MonoGame framework.} The game consists of levels where the player must reach the door on the other end of the map. They must collect the key and gems. The catch is that the player must input the movements of the character before executing them and watching them play out. \href{https://github.com/ethan-kharitonov/PASS4-Monogame}{github.com/ethan-kharitonov/PASS4-Monogame}}
+	\resumeSubItem{Tweet Sentiment Analyzer}{Used the Twitter API to collect over 200,000 tweets that mention vaccines in any way, then used the \textbf{NLTK} \textbf{Python} sentiment analysis library to determine whether the tweet is criticizing or approving of vaccines. Used the \textbf{Plotly} graphing library to plot the average sentiment on any given day over the span of two years.
+	\href{https://github.com/ethan-kharitonov/CSC110/tree/main/projects/covax}{github.com/ethan-kharitonov/CSC110/tree/main/projects/covax}}
 	\vspace{2pt}
-	\resumeSubItem{Several Other smaller projects written in C\#, Python, Java and Javascript}{Maze generator, SHA256 implementation and a simple graphing calculator.}
+	\resumeSubItem{Several other smaller projects written in C\#, Python, Java and Javascript}{Maze generator, SHA256 implementation and a simple graphing calculator.}
 	\vspace{2pt}
 	\resumeSubHeadingListEnd
 	\vspace{-5pt}
