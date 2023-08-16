@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.4) (preloaded format=pdflatex 2023.5.15)  11 AUG 2023 14:48
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (MiKTeX 23.4) (preloaded format=pdflatex 2023.5.15)  16 AUG 2023 14:19
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -313,9 +313,9 @@ LaTeX Font Info:    Trying to load font information for U+lasy on input line 82
 File: ulasy.fd 1998/08/17 v2.2e LaTeX symbol font definitions
 )
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <9> on input line 109.
+(Font)              <9> on input line 104.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 109.
+(Font)              <6> on input line 104.
 
 
 Package fancyhdr Warning: \footskip is too small (0.0pt): 
@@ -325,18 +325,23 @@ Package fancyhdr Warning: \footskip is too small (0.0pt):
 [1
 
 {C:/Users/P12AC48/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}]
-(Resume.aux)
+
+Package fancyhdr Warning: \footskip is too small (0.0pt): 
+(fancyhdr)                Make it at least 3.60004pt, for example:
+(fancyhdr)                \setlength{\footskip}{3.60004pt}.
+
+[2] (Resume.aux)
 Package rerunfilecheck Info: File `Resume.out' has not changed.
 (rerunfilecheck)             Checksum: 6F20DC4812025878C20DBFC78E67B2ED;580.
  ) 
 Here is how much of TeX's memory you used:
- 9244 strings out of 476331
- 147143 string characters out of 5786821
- 1881660 words of memory out of 5000000
+ 9245 strings out of 476331
+ 147149 string characters out of 5786821
+ 1883660 words of memory out of 5000000
  29575 multiletter control sequences out of 15000+600000
  518243 words of font info for 54 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,11n,76p,520b,437s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,11n,76p,376b,509s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\P12AC48\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tc
 rm0900.pk> <C:\Users\P12AC48\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/d
 pi600\tcrm1000.pk><C:/Users/P12AC48/AppData/Local/Programs/MiKTeX/fonts/type1/p
@@ -352,9 +357,9 @@ ic/amsfonts/cm/cmr9.pfb><C:/Users/P12AC48/AppData/Local/Programs/MiKTeX/fonts/t
 ype1/public/amsfonts/cm/cmsy10.pfb><C:/Users/P12AC48/AppData/Local/Programs/MiK
 TeX/fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/Users/P12AC48/AppData/Local/P
 rograms/MiKTeX/fonts/type1/public/amsfonts/cm/cmti8.pfb>
-Output written on Resume.pdf (1 page, 179260 bytes).
+Output written on Resume.pdf (2 pages, 182077 bytes).
 PDF statistics:
- 105 PDF objects out of 1000 (max. 8388607)
- 7 named destinations out of 1000 (max. 500000)
+ 110 PDF objects out of 1000 (max. 8388607)
+ 8 named destinations out of 1000 (max. 500000)
  41 words of extra memory for PDF output out of 10000 (max. 10000000)
 
