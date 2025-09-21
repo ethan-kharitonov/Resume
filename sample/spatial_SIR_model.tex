@@ -1,0 +1,445 @@
+\documentclass[a4paper]{article}
+
+\usepackage{amsfonts} 
+\usepackage{fancyhdr} 
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{framed}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage[utf8]{inputenc}
+\usepackage{color,soul}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{algpseudocode, algorithm}
+\usepackage{amsmath,amsthm,amssymb, mathtools}
+\usepackage{tikz}
+\usetikzlibrary{positioning,shapes,arrows.meta}
+\usepackage{enumitem}
+\usepackage{booktabs}
+
+
+%%%
+% Set up the margins to use a fairly large area of the page
+%%%
+\oddsidemargin=-0.4in
+\evensidemargin=.1in
+\textwidth=7.2in
+\topmargin=0in
+\textheight=9.0in
+\parskip=.07in
+\parindent=0in
+\pagestyle{fancy}
+\fancyhead[R]{}
+
+\title{A Spatial SIR Model with Individual Mobility}
+\author{Ethan Kharitonov}
+\date{\today}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{prop}[theorem]{proposition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{remark}{Remark}[section]
+
+
+\begin{document}
+	\begin{titlepage}
+		\centering
+		{\LARGE \bfseries A Spatial SIR Model with Individual Mobility\\[1.5em]}
+		
+		
+		{\large Ethan Kharitonov\\ April 6, 2024}
+		\begin{abstract}
+			In this paper, I present a novel extension of the classical SIR (Susceptible-Infected-Recovered) model that incorporates individual-level movement across shared interaction hubs such as workplaces, schools, and stores. Unlike traditional models that assume uniform mixing or static subpopulations, our framework models each individual’s trajectory as a Markov process over a finite set of locations, with disease transmission occurring locally within each hub. This allows us to simulate how specific mobility behaviors such as movement frequency, destination preferences, and hub congestion, influence epidemic dynamics. We formalize the system as a discrete-time stochastic process, derive transition probabilities for infection and recovery, and analyze the resulting structure of the Markov chain. To manage the high-dimensional state space, I introduce a lumping technique that aggregates microstates into equivalence classes, enabling tractable analysis of long-term outcomes. This framework offers a behaviorally realistic view of disease spread and provides a powerful tool for evaluating targeted public health interventions based on movement and interaction patterns.
+		\end{abstract}
+	\end{titlepage}
+	\tableofcontents
+	\newpage
+	\newcommand{\R}{\mathbb{R}}
+	\newcommand{\Q}{\mathbb{Q}}
+	\newcommand{\Z}{\mathbb{Z}}
+	\newcommand{\N}{\mathbb{N}}
+	\renewcommand{\P}{\mathcal{P}}
+	\newcommand{\D}{\mathcal{D}}
+	\newcommand{\C}{\mathbb{C}}
+	\newcommand{\Tr}{\text{T}}
+	\renewcommand{\L}{\mathcal{L}}
+	\newcommand{\A}{\mathcal{A}}
+	\newcommand{\sign}{\text{sign}\;}
+	\renewcommand{\null}{\text{null}}
+	\newcommand{\match}{\text{match}}
+	\newcommand{\OPT}{\text{OPT}}
+	\section{Background}
+	The global healthcare system is a multi-trillion dollar industry, with the healthcare market valued at approximately \$21.22 trillion in 2023, and projected to grow to \$44.76 trillion by 2032 \href{https://www.globenewswire.com/news-release/2024/08/01/2923001/0/en/Healthcare-Market-Size-Worth-US-44-760-73-Billion-By-2032-Continuous-Advancements-in-Biotechnology-Pharmaceuticals-Propels-Growth-Research-by-SNS-Insider.html}{(SNS Insider, 2024)}. Despite this massive infrastructure, infectious diseases remain a significant global threat. According to the Global Burden of Disease Study 2019, infectious syndromes were responsible for 13.7 million deaths in 2019, with nearly 3 million deaths among children under five \href{https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(22)02185-7/fulltext}{(Ikuta et al., 2022)}. Pathogens like tuberculosis, malaria, and HIV/AIDS remain leading causes of death in many regions, particularly low- and middle-income countries.
+	
+	The COVID-19 pandemic demonstrated the critical importance of disease modeling and public health interventions. A review of global data suggests that quarantine measures—alongside mask-wearing and physical distancing—reduced COVID-19 transmission significantly. One early study showed that quarantine on the Diamond Princess cruise ship prevented an estimated 2,307 additional infections, reducing the disease basic reproduction rate from 14.8 to 1.78 \href{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7141753/}{(Nussbaumer-Streit et al., 2020)}. Other models estimate that widespread public health interventions during COVID-19 reduced global transmission by nearly 50\% in the early stages of the outbreak \href{https://www.nature.com/articles/s41591-020-0822-7}{(Wu et al., 2020)}.
+	
+	The traditional SIR model describes the spread of an infectious disease within a closed population. It partitions the population into three mutually exclusive sets, $S$ (susceptible), $I$ (infected), and $R$ (recovered). The model assumes that the total number of people is some constant $N \in \mathbb{N}$, and that people mix uniformly, i.e., any two people have an equal chance of interacting. This leads to the system of ODEs
+	\begin{align*}
+		S &= -\frac{\beta}{N}IS\\
+		I &= \frac{\beta}{N}IS - \gamma I\\
+		R &= \gamma I
+	\end{align*}
+	Here $S, I, R: [0, \infty) \longrightarrow \mathbb{R}_{\geq 0}$, where $t$ represents time and $\beta, \gamma$ are constants specific to the disease we are studying \href{https://documents1.worldbank.org/curated/en/888341625223820901/pdf/An-Introduction-to-Deterministic-Infectious-Disease-Models.pdf}{(World Bank, 2021)}.
+	
+	Traditional epidemiological models such as the SIR framework assume a well-mixed population where all individuals have an equal probability of interacting. While this provides useful baseline insights, it fails to account for the structured and patterned ways in which people interact in real life. A substantial body of research has addressed this limitation through multi-group and metapopulation models, which divide the population into distinct subgroups or spatial patches, allowing disease to spread both within and between these groups. For instance, multigroup models have been used to explore differential infection rates across demographic or regional strata and to assess the effects of targeted interventions \href{https://www.sciencedirect.com/science/article/abs/pii/S0022519311004760}{(Chow et al., 2011)}, \href{https://pmc.ncbi.nlm.nih.gov/articles/PMC9698251}{(McCormack et al., 2022)}. Similarly, metapopulation models have been employed to capture regional spread of disease through travel or migration, particularly during the COVID-19 pandemic \href{https://www.frontiersin.org/journals/physics/articles/10.3389/fphy.2020.00261/full}{(Calvetti et al., 2020)}.
+	
+	Building on these frameworks, we propose a model that takes a more granular approach by simulating individual-level movement between shared hubs—such as schools, workplaces, or stores—and observing how disease propagates through these interaction points. This framework shares key features with multi-patch models, which incorporate location-specific transmission dynamics and directional movement between patches, as well as with spatial interaction models that emphasize local versus long-range contacts based on physical proximity or mobility behavior.
+	\section{Model Overview}
+	We relax the uniform mixing assumption of the classical SIR model by dividing the population into a finite number of distinct hubs (such as schools, homes, grocery stores, and gyms). Within each hub, individuals interact only with others present there, and the disease spreads according to the standard SIR dynamics: susceptibles may become infected based on their exposure to the fraction of infecteds, and infecteds eventually recover. Each person spends one unit of time (for example, one hour) in a hub, during which these local interactions and transmissions occur continuously. At the end of the hour, movement between hubs takes place instantaneously. Every individual has their own fixed set of travel probabilities, so if an individual is in hub $j$, they move to hub $k$ with probability $P_{ij}^{(i)}$, where the matrix $P^{(i)}$ is unique to that individual.\\\\
+	Models have been built to explore these types of relationships on the global scale \href{https://ieeexplore.ieee.org/document/9381457}{(Goel et al., 2020)}, but we are interested in the lens of individual communities and daily interactions.
+	\section{Model Description}
+	\subsection{Introduction}
+	We aim to model the spread of an infectious disease using a modified SIR framework that accounts for the movement patterns of individuals within a community. Each person travels between a finite number of shared hubs such as schools, workplaces, or grocery stores, where disease transmission may occur. By incorporating location-specific contact patterns and allowing individuals to follow their own mobility routines, we seek to capture more realistic dynamics and analyze how different behaviors affect disease outcomes.
+	\subsection{Notation}
+	Denote the set of people by $\mathcal{N}$ and the set of hubs by $\mathcal{H}$. Assume both are of finite size $N$ and $H$ respectively. Each person $i \in \mathcal{N}$ can be in one of three states, $S$, $I$ or $R$. Let $\mathcal{S} = \{S, I, R\}$. For each individual $i \in \mathcal{N}$ and time $t \in \Z_{+}$ (in hours, although the unit does not matter),
+	\begin{itemize}
+		\item $X^{(i)}(t) \in \mathcal{S}$: Epidemiological state of individual $i$ at time $t$
+		\item $L^{(i)}(t) \in \mathcal{H}$: Location (hub) of individual $i$ at time $t$
+		\item $P^{(i)} \in \R^{H \times H}$: Individual-specific transition matrix where $P_{jk}^{(i)}$ is the probability of individual $i$ moving from hub $j$ to hub $k$
+	\end{itemize}
+	Finally, each hub $h \in \mathcal{H}$ has a transmission rate $\beta_{h} > 0$ and all hubs share a global recovery rate $\gamma > 0$. At time $t \in \Z_{+}$, the entire system is described by
+	$$\Phi(t) = (X^{(i)}(t), L^{(i)}(t))_{i \in \mathcal{N}}$$
+	Denote the set of all possible states the system could be in by $\mathcal{X} = (\mathcal{S} \times \mathcal{H})^{\mathcal{N}}$. Note that $\Phi(t) \in \mathcal{X}$. Finally, for each $h \in \mathcal{H}$, we define $S_{h}, I_{h}, R_{h}, N_{h}: \Z_{+} \longrightarrow \Z_{\geq 0}$ to be the number of susceptible, infected, recovered and the total number of people respectively in hub $h$ at a given time. More precisely,
+	$$S_{h}(t) = |\{i \in \mathcal{N}: X^{(i)}(t) = S, L^{(i)}(t) = h\}|$$
+	$I_{h}, R_{h}$ are analogous and $N_{h} = S_{h} + I_{h} + R_{h}$. A coarser view of the system at time $t$ is the vector $(S_{h}, I_{h}, R_{h})_{h \in \mathcal{H}}$. This contains less information than $\Phi$.
+	\subsection{Dynamics}
+	\subsubsection{Within a hub}
+	During $[t, t + 1)$, each hub will act as its own population. We make three assumptions.
+	\begin{enumerate}
+		\item A susceptible person can become infected but not recover within one time step.
+		\item A recovered person will stay recovered throughout the time step.
+		\item We make the same assumptions underlying the standard SIR model.
+	\end{enumerate}
+	Let us explain what we mean by assumption (3). We assume that the a susceptible individual instantaneous risk of infection in a given hub $h$ during time $[t, t + 1)$ is proportional to
+	$$\lambda_{h}(t) = \frac{\beta_{h}I_{h}(t)}{N_{h}(t)}$$
+	This implies that a susceptible person's chance of being infected over a time interval $[t, t + \delta]$ is the same as it is over any other interval of length $\delta$. Naturally, this will lead to a Poisson process $\lambda_{h}(t)$. It is not difficult to show that the probability that a susceptible person is infected is at hub $h$ during this time is,
+	$$1 - \exp(-\lambda_{h}(t))$$
+	Similarly, we assume that that recovery follows a Poisson process with a constant recovery rate $\gamma$. We can show that the probability an infected individual recovers during a time interval of length 1  is given by
+	$$1 - \exp(-\gamma)$$
+	\subsubsection{Moving between hubs}
+	At the end of the time interval $[t, t + 1]$, each individual $i$ at hub $j$ moves to a hub $k$ with probability $P_{jk}^{(i)}$. Symbolically,
+	$$\mathbb{P}(L^{(i)}(t + 1) = k \mid L^{(i)}(t) = j) = P_{jk}^{(i)}$$
+	For this to make sense, we enforce that $\sum_{k \in \mathcal{H}}P^{(i)}_{jk} = 1$ for all $j \in \mathcal{H}$. That is, the functions $L^{(i)}(0), L^{(i)}(1), \dots$ form a Markov chain with transition matrix $P^{(i)}$.
+	\subsubsection{State transitions}
+	Suppose that at time $t$, the state of each individual $i \in \mathcal{N}$ is given by $Y(t) = (X^{(i)}(t), L^{(i)}(t))$. The state of the entire system at time $t$ is then given by
+	$$Y(t) = (Y^{(1)}(t), \dots, Y^{(N)}(t)) \in \mathcal{X}$$
+	The next state is given with the following probabilities.
+	\begin{itemize}
+		\item If $x = S$, then 
+		$$\mathbb{P}\bigl(Y^{(i)}(t+1) = (I,k) \mid Y^{(i)}(t) = (S,j)\bigr) = (1 - \exp(-\lambda_{j}(t)))P_{jk}^{(i)}$$
+		\item If $x = I$, then 
+		$$\mathbb{P}\bigl(Y^{(i)}(t+1) = (R,k) \mid Y^{(i)}(t) = (I,j)\bigr) = (1 - \exp(-\gamma)) P_{jk}^{(i)}$$
+		\item If $x = R$, then 
+		$$\mathbb{P}\bigl(Y^{(i)}(t+1) = (R,k) \mid Y^{(i)}(t) = (R,j)\bigr) =  P_{jk}^{(i)}$$
+	\end{itemize}
+	We did not include the probabilities of all possible transitions above, but the rest can be deduced from these. For example, the chance of moving from an infected state to an infected state is the complement of the chance of moving from infected to recovered.\\\\
+	Assuming that people get infected, recover and move around with independent probabilities, we have
+	$$\mathbb{P}(Y(t + 1) = y \mid Y(t) = x) = \prod_{i \in \mathcal{N}}\mathbb{P}(Y^{(i)}(t + 1) = y^{(i)} \mid Y_{i}(t) = x_{i})$$
+	This defines a Markov transition matrix on the state space $\mathcal{X}$.
+	\section{Research Questions}
+	Define the functions $S = \sum_{h \in \mathcal{H}}S_{h}, I = \sum_{h \in \mathcal{H}}I_{h}$ and $R = \sum_{h \in \mathcal{H}}R_{h}$. Here is a list of questions we would like to be able to answer about this model.
+	\begin{enumerate}
+		\item What is the long run behaviour of the infection? More precisely, what are the limiting values of $S, R$ and $R$? More formally, we are interested in
+		$$\mathbb{E}(\lim_{t \to \infty}R(t))$$
+		\item Do certain hubs have a special effect on the long term values of $S, I$ and $R$ (super spreader hubs)?
+		\item Are there certain properties an individual's transition matrix $P^{(i)}$ can have that will have a noteworthy effect? For example, if a person moves along a fixed deterministic path through all the hubs.
+		\item Can we approximate this model with a single population SIR model by choosing appropriate values for $\beta$ and $\gamma$?
+	\end{enumerate}
+	\section{Analysis}
+	\subsection{Structure of the chain}
+	We define some more terminology here. We refer to elements of $\mathcal{S}^{\mathcal{N}}$ as \textbf{health vectors} and to elements of $\mathcal{H}^{\mathcal{N}}$ as \textbf{location vectors}. Any state in $\mathcal{X} = (\mathcal{S} \times \mathcal{H})^{\mathcal{N}} \cong \mathcal{S}^{\mathcal{N}} \times \mathcal{H}^{\mathcal{N}}$ can be described by stating it's health and location vectors. When convinient, we will describe states this way. I,e,. instead of providing a list $((x_{1}, \ell_{i}), \dots, (x_{N}, \ell_{N}))$, we will provide a tuple $(x, \ell)$ where $x$ and $\ell$ are health and location vectors respectively. Notice that the sequence $L(0), L(1), \dots$ is a Markov chain defined on the space of location vectors. It's transition function is given by 
+	$$\mathbb{P}(L(t + 1) = \tilde{\ell} \mid L(t) = \ell) = \prod_{i \in \mathcal{\N}}P^{(i)}_{\ell_{i}\tilde{\ell}_{i}}$$
+	In other words, the transition matrix of $L$ is exactly the tensor product $P := P^{(1)} \otimes \dots \otimes P^{(N)}$. In the next proposition, we state the transition kernel of $\Phi$ in the cleanest form we can.
+	\begin{prop}
+		For each hub $h \in \mathcal{H}$ and $t \in \Z_{+}$ define the matrix
+		$$M^{h}(t) = \begin{pmatrix}
+			e^{-\lambda_{h}(t)} & 1 - e^{-\lambda_{h}(t)} & 0\\
+			0 & e^{-\gamma} & 1 - e^{-\gamma}\\
+			0  & 0 & 1
+		\end{pmatrix}$$
+		The probability of moving from from any state $(x, \ell) \in \mathcal{X}$ to any $(\tilde{x}, \tilde{\ell}) \in \mathcal{X}$ is given by
+		$$\mathbb{P}(\Phi(t + 1) = (\tilde{x}, \tilde{\ell}) \mid \phi(t) = (x, \ell)) = \prod_{i \in \mathcal{N}}P_{\ell \tilde{\ell}}M^{\ell_{i}}_{x_{i}\tilde{x}_{i}}(t)$$
+		Where $M^{\ell_{i}}_{x_{i}\tilde{x}_{i}}$ makes sense under the identification $(S, I, R) = (0, 1, 2)$ which we will often make.
+	\end{prop}
+	\begin{proof}
+		Let $(x, \ell) (\tilde{x}, \tilde{\ell}) \in \mathcal{X}$. We compute the probability that $\Phi$ moves from the former to the latter.
+		\begin{align*}
+			\mathbb{P}(\Phi(t + 1) = (\tilde{x}, \tilde{\ell}) \mid \phi(t) = (x, \ell)) &= \mathbb{P}((X(t + 1), L(t + 1)) = (\tilde{x}, \tilde{\ell}) \mid \phi(t) = (x, \ell))\\
+			&= \mathbb{P}(X(t + 1) = \tilde{x} \mid \phi(t) = (x, \ell))\mathbb{P}(L(t + 1) =  \tilde{\ell} \mid \phi(t) = (x, \ell))
+		\end{align*}
+		We focus on the location change probability first. Since the probability that the next location vector is $\tilde{\ell}$ depends only on the current location vector $\ell$, we have 
+		\begin{align*}
+			\mathbb{P}(L(t + 1) = \tilde{\ell} \mid \phi(t) = (x, \ell)) &= \mathbb{P}(L(t + 1) = \tilde{\ell} \mid L(t) = \ell) = P_{\ell \tilde{\ell}}
+		\end{align*}
+		Now we turn our attention to the probability of the health change. 
+		$$\mathbb{P}(X(t + 1) = \tilde{x} \mid \phi(t) = (x, \ell)) = \prod_{i \in \N}\mathbb{P}(X_{i}(t + 1) = \tilde{x}_{i} \mid \Phi_{i}(t) = (x_{i}, \ell_{i}))$$
+		Finally, $M$ is constructed exactly to make the following hold,
+		$$\mathbb{P}(X(t+1) = \tilde{x} \mid \Phi(t) = (x, \ell)) = M^{\ell_{i}}_{x_{i}\tilde{x}_{i}}$$
+	\end{proof}
+	\subsection{Classification of states and communication classes}
+	In this subsection, we investigate three questions. Namely,
+	\begin{enumerate}
+		\item Which of the states of $\Phi$ are transient and which are recurrent?
+		\item What are the communication classes of $\Phi$?
+		\item Which communication classes are transient and which are recurrent?
+	\end{enumerate}
+	Let $(x, \ell) \in \mathcal{X}$ be a state. we say that $(x, \ell)$ is \textbf{disease-free} if $x_{i} \neq I$ for all $i \in \mathcal{N}$. Any state that is not disease-free must be transient because $\Phi$ eventually takes values in disease-free states almost surely. Conversely, if $(x, \ell)$ is disease-free, then starting $\Phi(0)$ at $(x, \ell)$, we have $\phi(t) = (x, \ell_{t})$ for all $t \in \N$. Here $\ell_{t} \in \mathcal{H}^{\mathcal{N}}$ is some location vector. In other words, the health state of the system does not change once the disease is gone. It follows that $(x, \ell)$ is recurrent if and only if $\ell$ is a recurrent state of the chain governed by the tensor product $P$. Consequently, $(x, \ell)$ is recurrent if and only if $l_{i}$ is recurrent in each $P^{(i)}$. This motivates the following assumption.\\\\
+	\textbf{Assumption.} If person $i \in \mathcal{N}$ is at hub $h$, they eventually come back to hub $h$, almost surely.\\\\
+	Formally stated, this assumption says that every hub is recurrent with respect to the chain $L^{(i)}$ for each $i \in \mathcal{N}$. It follows that a state in $\mathcal{X}$ is recurrent if and only if it is disease-free. Now we turn to communication classes. In any Markov chain, we denote the communication class of a state $x$, by $[x]$. It is not difficult to see that two states $(x, \ell), (\tilde{x}, \tilde{\ell})$ communicate if and only if $x = \tilde{x}$ and $\ell$ communicates with $\tilde{\ell}$ in the transition matrix. We summarize this in the following result.
+	\begin{prop}
+		Let $(x, \ell), (\tilde{x}, \tilde{\ell}) \in \mathcal{X}$ be two states. Then $[(x, \ell)] = [(\tilde{x}, \tilde{\ell})]$ if and only if $x = \tilde{x}$ and $[\ell] =[\tilde{\ell}]$. In addition, $[(x, \ell)]$ is recurrent if and only if $x$ is disease-free. In particular, for every communication class $[\ell]$ of $P$ and every health vector $x \in \mathcal{H}^{\mathcal{N}}$, there is one communication class 
+		$$[(x, \ell)] = \{(\tilde{x}, \tilde{\ell}) \in \mathcal{X}: x = \tilde{x} \text{ and } [\ell] = [\tilde{\ell}]\}$$
+		of $\mathcal{X}$. In addition, these are all of the communication classes of $\mathcal{X}$. \qed
+	\end{prop}
+	Recall that our goal is to study the long-term behavior of the virus. More specifically, we are interested in what percentage of the population will eventually catch (and hence recover) from the virus. We can now rephrase this in the language of communication classes. We know that the chain will eventually be contained inside a recurrent communication class (almost surely). The percentage of the population which is recovered is completely determined by which communication class the chain ends up in. Hence, we rephrase our goal as follows.\\\\
+	\textbf{Goal.} Given an integer $R(\infty) \in [0, N]$, what is the probability that the chain $\Phi$ falls into any recurrent communication class $[(x, \ell)]$ where $x$ contains $R(\infty)$ many $R$ entries.
+	\subsection{Lumping}
+	We have a problem; our state space is much too big for us to perform any calculation in a reasonable amount of time. 
+	$$|\mathcal{X}| = |(\mathcal{S} \times \mathcal{H})^{\mathcal{N}}| = (3H)^{N}$$
+	However, many of these microstates are effectively equivalent in terms of disease progression and long-term outcomes. In this section we decrease the state space significantly (from being exponential in $N$ to polynomial in $N$) without losing critical information.
+	\subsubsection{Transition groups}
+	Every person $i \in \mathcal{N}$ moves between hubs according to the Markov chain governed by $P^{(i)}$. Suppose we would like to use our model to study a real community with ten thousand people and twenty hubs. There is no possible way we can write down a different $20\times20$ matrix for each of the ten thousand people in the community. What we might do is come up with a small number of transition matrices and assume that the population can be partitioned into groups where people in the same group move according to the same Markov chain. More formally, we would partition
+	$$\mathcal{N} = G^{(1)} \cup \dots \cup G^{(k)}$$
+	into some number $k$ of groups. Each group has a transition matrix $Q^{(j)}$ and the people $i \in G^{(j)}$ in group $j$ move according to the Markov chain $P^{(i)} = Q^{(j)}$. Notice that it makes no difference which particular people are in each group, at least in terms of the quantities we are studying. In other words, for all intents and purposes, people in the same group are identical. We make this idea more precise in the next section. Also note that this is technically not an assumption which weakens our model because we may always set $k = N$. This allows us to represent movement patterns more compactly. In practice, this corresponds to classifying individuals by occupation, routine, or behavior (e.g., "commuters", "students", "retired individuals").
+	\subsubsection{Motivation}
+	We make an observation that the states of the Markov chain $\Phi$ store much more information then is needed for our purposes. To see what we mean by this, let us consider the miniature case where $N = H = 2$ (two people and two hubs). The possible health vectors are $\mathcal{S}^{\mathcal{N}} = \{SS, SI, IS, SR, II, RS, RR\}$. Similarly, the possible location vectors are $\mathcal{H}^{\mathcal{N}} = \{(0,0), (0, 1), (1, 0), (0, 2), (1, 1), (2, 0), (2,2)\}$. Consider the two states $\phi_{1} = ((S, 0), (R, 1))$ an $\phi_{2} = ((R, 2), (S, 2))$. Although technically distinct, both states contain one susceptible and one recovered individual. A recovered fraction of $0.5$. We do not care which of these two states we end up in. Observe that the goal stated above does not ask the probability we end up in any particular recurrent state, but for the probability that we end up in any one of these \textit{equivalent} states. Note that the location of the people does not matter only when the health dynamics are frozen (the states are disease-free). There are legitimate differences between the states $\phi_{1} = ((S, 0), (I, 1))$ and $\phi_{2} = ((I, 2), (S, 2))$ which we cannot ignore. One such difference is that the probability of the both people being infected on the next step is different depending on which of these two states we start from.
+	$$\mathbb{P}(I(1) = 2 \mid \Phi(0) = \phi_{1}) = 0 \neq \mathbb{P}(I(1) = 2 \mid \Phi(0) = \phi_{2})$$
+	This does not mean that transient states do not contain redundant information however. There is another way in which transient states can be seen as \textit{equivalent}. Consider the two states $\phi_{1} = ((I, 0), (S, 0))$ and $\phi_{2} = ((S, 0), (I, 0))$ and assume that both people belong to the same group $G^{(0)}$ (which in this scenario means that all people have the same transition matrix, but that is not relevant for this example). In both states $\phi_{1}$ and $\phi_{2}$, hub $0$ has two infected people in group $0$, no people in all other groups and hub $2$ has no people in any group. We can show the given any third states $\phi_{3}$, we have
+	$$\mathbb{P}(\Phi(1) = \phi_{3} \mid \Phi(0) = \phi_{1}) = \mathbb{P}(\Phi(1) = \phi_{3} \mid \Phi(0) = \phi_{2})$$
+	Similarly,
+	$$\mathbb{P}(\Phi(1) = \phi_{1} \mid \Phi(0) = \phi_{3}) = \mathbb{P}(\Phi(1) = \phi_{3} \mid \Phi(0) = \phi_{2})$$
+	
+	\subsubsection{Equivalent states}
+	This pattern holds in general which prompts the following definition. We define an equivalence relation $\sim$ on $\mathcal{X}$ as follows. Given two states $\phi, \tilde{\phi} \in \mathcal{X}$, we say that $\phi$ and $\tilde{\phi}$ are equivalent, denoted $\phi \sim \tilde{\phi}$ if either  
+	\begin{enumerate}
+		\item $\phi, \tilde{\phi}$ are both disease-free and $R(\phi_{1}) = R(\phi_{2})$
+		\item $(S^{(j)}_{h}(\phi), I^{(j)}_{h}(\phi), N^{(j)}_{h}(\phi)) = (S^{(j)}_{h}(\tilde{\phi}), I^{(j)}_{h}(\tilde{\phi}), N^{(j)}_{h}(\tilde{\phi}))$
+		for all $j = 1, \dots, k$ and $h \in \mathcal{H}$
+	\end{enumerate}
+	Note that any equivalence class of $\sim$ contains either transient states, or recurrent states but not both. This allows us to label each equivalence class as such. Let $\mathcal{T}$ and $\mathcal{R}$ be the sets of transient and recurrent states of $\Phi$ respectively. Another way to phrase what was said above is that the transient and recurrent equivalence classes of $\sim$ partition $\mathcal{T}$ and $\mathcal{R}$ respectively. Since $\mathcal{T}, \mathcal{R} \subseteq \mathcal{X}$, we can also talk about $\mathcal{T}/\sim$ and $\mathcal{R}/\sim$ and in fact,
+	$$\mathcal{X} = (\mathcal{T}/\sim) \cup (\mathcal{R}/\sim)$$
+	By definition  of $\sim$, there is exactly one $\mathcal{R}/\sim$ per number $\R(\infty) \in [0, N]$. Similarly, elements of $\mathcal{T}/\sim$ are described uniquely by lists $$((S^{(1)}_{h}, I^{(1)}_{h}, R^{(1)}_{h}), \dots, (S^{(k)}_{h}, I^{(k)}_{h}, R^{(k)}_{h}))_{h \in \mathcal{H}}$$
+	We make the identification of $\mathcal{T}/\sim$ with such vectors and $\mathcal{R}/\sim$ with integers between $0$ and $N$. 
+	\subsubsection{Quotient chain}
+	\begin{lemma}
+		The relation $\sim$ satisfies the strong lumping property. That is, for any two equivalence classes $\mathcal{C}, \mathcal{C}' \in \mathcal{X} / \sim$ and for all $\phi \in \mathcal{C}$, the value of 
+		$$\sum_{\phi' \in \mathcal{C}'}\mathbb{P}(\Phi(t + 1) = \phi' \mid \Phi(t) = \phi)$$ 
+		is independent of the choice of representative $\phi$.
+	\end{lemma}
+	\begin{proof}
+		Let $\phi = (x, \ell), \tilde{\phi} = (\tilde{x}, \tilde{\ell}) \in \mathcal{C}$. Since $\phi \sim \tilde{\phi}$, either both are disease-free with equal values of $R$ or both have identical counts $(S^{(j)}_{h}, I^{(j)}_{h}, R^{(j)}_{h})$ for all hubs $h$ and groups $j$. Suppose first that $\phi, \tilde{\phi}$ are disease-free. Then for any hub $h$ we have $I_{h} = 0$ so $\lambda_{h} = 0$. It follows that the matrix $M^{h}$ becomes
+		$$M^{h} = \begin{pmatrix}
+			1 & 0 & 0\\
+			0 & e^{-\gamma} & 1 - e^{-\gamma}\\
+			0  & 0 & 1
+		\end{pmatrix}$$
+		Then for any $(x', \ell') \in \mathcal{C}'$, we have $$M^{\ell_{i}}_{x_{i}x'_{i}} = 
+		\begin{cases}
+			1 &if x_{i} = x'_{i} = S\\
+			1 &if x_{i} = x'_{i} = R\\
+			0 &otherwise
+		\end{cases}$$
+		By proposition 5.1
+		$$
+		\mathbb{P}(\Phi(t + 1) = (x', \ell') \mid \Phi(t) = (x, \ell)) = \prod_{i \in \mathcal{N}}P_{\ell \ell'}M^{\ell_{i}}x_{i}x'_{i}(t) = \mathbb{P}(L(t + 1) = \ell' \mid L(t) = \ell)\cdot 1_{x = x'} = P_{\ell\ell'}1_{x = x'}
+		$$
+		Thus, if $x \neq x'$ the entire summation in the lemma becomes $0$. If $x = x'$ then the summation becomes a summation over a row of $P$ which is stochastic and is thus equal to $1$. In either case, the value of the summation does not depend on the choice of $\phi \in \mathcal{C}$. Now suppose that $\mathcal{C}$ is not a transient class. Since $\phi \sim \tilde{\phi}$, in both states, each group has the same number of individuals in each hub at each health state. The only difference is the individuals themselves might be different. Informally, we can re-label the people of one state to arrive at the second state. Formally, this means that for each group $j$, there exists a permutation $\sigma^{(j)}$ of the set $G^{(j)}$ such that 
+		$$(x_{\sigma^{(j)}(i)}, \ell_{\sigma^{(j)}(i)})_{i \in G^{(j)}} = (\tilde{x}_{i}, \tilde{\ell}_{i})_{i \in G^{(j)}}$$
+		Since the sets $G^{(j)}$ are disjoint, we can combine the permutations $\sigma^{(j)}$ into one big permutation $\sigma$ of the set $\mathcal{N}$. Then
+		$$(x_{\sigma(i)}, \ell_{\sigma(i)})_{i \in \mathcal{N}} = (\tilde{x_{i}}, \tilde{\ell}_{i})_{i \in \mathcal{N}}$$
+		Now we show that the summation in the statement of the lemma is the same for both choices of representative $\phi$ and $\tilde{\phi}$.
+		\begin{align*}
+			\sum_{\phi' \in \mathcal{C}'}\mathbb{P}(\Phi(t + 1) = \phi' \mid \Phi(t) = \tilde{\phi}) &= \sum_{\phi' \in \mathcal{C}'}\mathbb{P}(\Phi(t + 1) = \phi' \mid \Phi(t) = (\tilde{x_{i}}, \tilde{\ell}_{i}))\\
+			&= \sum_{(x', \ell') \in \mathcal{C}'}\mathbb{P}(\Phi(t + 1) = (x', \ell') \mid \Phi(t) = (x_{\sigma(i)}, \ell_{\sigma(i)}))\\
+			&= \sum_{(x', \ell') \in \mathcal{C}'}P_{\sigma(\ell)\ell'}\prod_{i \in \mathcal{N}}M^{\ell_{\sigma(i)}}_{x_{\sigma(i)}x'_{i}}
+		\end{align*}
+		Note that above we used $\sigma(\ell)$ to denote the vector obtained by permuting the entries of $\ell$ according to $\sigma$. Since the product ranges over all of $\mathcal{N}$ and multiplication is commutative, we can apply $\sigma^{-1}$ to the index to multiply in a different order. That is
+		$$\prod_{i \in \mathcal{N}}M^{\ell_{\sigma(i)}}_{x_{\sigma(i)}x'} = \prod_{i \in \mathcal{N}}M^{\ell_{i}}_{x_{i}x'_{\sigma^{-1}(i)}}$$
+		Similarly, since $\sigma$ is invariant on each group, and each group has the same transition matrix, $\sigma$ amounts to a re-labeling of the people in each group. Thus
+		$$P_{\sigma(\ell)\ell'} = P_{\ell \sigma^{-1}(\ell')}$$
+		Thus
+		\begin{align*}
+			\sum_{(x', \ell') \in \mathcal{C}'}\mathbb{P}(\Phi(t + 1) = (x', \ell') \mid \Phi(t) = (x_{\sigma(i)}, \ell_{\sigma(i)})) = \sum_{(x', \ell') \in \mathcal{C}'}P_{\ell \sigma^{-1}(\ell')}\prod_{i \in \mathcal{N}}M^{\ell_{i}}_{x_{i}x'_{\sigma^{-1}(i)}}
+		\end{align*}
+		Finally, since addition is commutative, we can re-order the summation on the right according to $\sigma$ to get
+		\begin{align*}
+			\sum_{(x', \ell') \in \mathcal{C}'}P_{\ell \sigma^{-1}(\ell')}\prod_{i \in \mathcal{N}}M^{\ell_{i}}_{x_{i}x'_{\sigma^{-1}(i)}} &= \sum_{(x', \ell') \in \mathcal{C}'}P_{\ell \ell'}\prod_{i \in \mathcal{N}}M^{\ell_{i}}_{x_{i}x'_{i}}\\
+			&= \sum_{(x', \ell') \in \mathcal{C}'}\mathbb{P}(\Phi(t + 1) = (x', \ell') \mid \Phi(t) = (x_{i}, \ell_{i}))
+		\end{align*}
+		This completes the proof.
+	\end{proof}
+	This allows us to define the quotient chain $\Psi = \Phi/\sim$ on the set of equivalence classes $\mathcal{X}/\sim$. The transition kernel of this chain is defined as follows. Let $[\phi], [\tilde{\phi}] \in \mathcal{X} / \sim$ be equivalences classes. Then
+	$$\mathbb{P}(\Psi(t + 1) = [\tilde{\phi}] \mid \Psi(t) = [\phi]) = \sum_{\psi \in [\tilde{\phi}]}\mathbb{P}(\Phi(t + 1) = \psi \mid \Phi(t) = \phi)$$
+	Note that lemma 5.3 tells us that the transition kernal of $\Psi$ is well-defined.
+	\begin{theorem}
+		For each $R(\infty) \in [0, N]$, the probability that $\Psi$ settles in $R(\infty) \in \mathcal{R} / \sim$ is equal to the probability that $\Phi$ settles in a recurrent communication class $(x, \ell) \in \mathcal{X}$ such that $x$ contains $R(\infty)$ many $R$ coordinates.
+	\end{theorem}
+	\begin{proof}
+		This is immediate from the definition of $\Psi$.
+	\end{proof}
+	Note that our state space is still huge and grows very fast with $N$, but it is no longer exponential (it is exponential with the number of groups $k$). There is now a new issue. The transition probabilities of $\Psi$ are hard to compute. Of course, we could just compute the summation directly, but that defeats the purpose of lumping. We believe that the correct way to proceed is to find good approximations of the transition probabilities. Unfortunately, we did not have time to explore this idea sufficiently far for it to be worthy of being included in this report.
+	\section{Computing the Probability Distribution}
+	Again, we aim to find the probability that $\Psi$ eventually settles into the recurrent class $R(\infty)$ for any given $R(\infty) \in [0, N]$. Although our state space $\mathcal{X}/\sim$ is still far too large for any of this to be computable without any further tricks, we can still apply standard methods from Markov chain theory. The following is a procedure to compute the probability distribution on $\Z_{+}$ that the virus dies down with a certain number of recovereds.
+	\subsection{Theoretical Procedure}
+	\begin{enumerate}
+		\item We define an order on the states of $\mathcal{X}/\sim$. This allows us to write the transition kernel of $\Psi$ as a matrix. It does not matter how we choose this order as long as all transient states come before all recurrent states. Let this order be denoted $\psi_{1}, \dots, \psi_{|\mathcal{T/\sim}|}, 0, 1, \dots, N$ where each $\psi_{i}$ is a transient state of $\Psi$.
+		\item We define the transition matrix $A$ as follows.
+		$$A_{i, j} = \mathcal{P}(\Psi(1) = \psi_{j} \mid \Psi(0) = \psi_{i})$$
+		The $(i, j)$ entry of $A$ is the probability that $\Psi$ moves from $\psi_{i}$ to $\psi_{j}$ at any step. Notice that by virtue of our order, $A$ will be in \textit{canonical form}
+		$$A = \begin{pmatrix}
+			Q & R\\
+			0 & I
+		\end{pmatrix}$$\\
+		where $Q$ governs transient-to-transient transitions, and $R$ governs transitions from transient to recurrent classes.
+		\item Compute the \textit{fundamental} matrix $N = (I - Q)^{-1}$. Note that $(I - Q)$ is nonsingular because $Q$ is substochastic. In reality, it is easier to compute an approximation of $N$ via a Neumann series.
+		$$N = I + Q + Q^{2} + Q^{3} + \dots$$
+		Note that this series converges because $Q$ is substochastic. This matrix encodes the expected number of visits to each transient state before absorption.
+		\item Compute the matrix $B = NR$. The number of rows of $B$ is equal to the number of transient states of $\Psi$. The number of columns of $B$ is equal to the number of recurrent states of $\Psi$. The $(i, R(\infty))$ entry of $B$ is the probability that starting from state $\phi_{i}$ the chain eventually settles into state $R(\infty)$.
+		\item Starting in state $\phi_{i}$, the probability we settle at any given $R(\infty)$ is given by the distribution row $B(i, \cdot)$.
+	\end{enumerate}
+	\subsection{Practical Considerations}
+	Even after lumping, the state space of the quotient chain $\Psi$ grows exponentially with the number of movement groups $k$ and hubs $H$. This makes direct computation of transition probabilities and absorption distributions challenging for realistically sized populations. Below, we outline several practical strategies to make these computations feasible, along with the underlying mathematical motivations.
+	First, let us note that we can always simulate our model using a Monte Carlo simulation. This is what we do in our results section. However, it is more interesting to try to compute the product $NR$ directly since this gives us the entire distribution at once.
+	\begin{enumerate}
+		\item Find an approximation for transition probabilities of $\Psi$.
+		$$\mathbb{P}(\Psi(t + 1) = [\tilde{\phi}] \mid \Psi(t) = [\phi]) = \sum_{\psi \in [\tilde{\phi}]}\mathbb{P}(\Phi(t + 1) = \psi \mid \Phi(t) = \phi)$$
+		Computing the transition probability from equivalence class $[\phi]$ to $[\tilde{\phi}]$ exactly involves summing over all microstates in the target class, which is typically infeasible. An approximation could bypass this enumeration.
+		
+		Since all microstates in an equivalence class share the same aggregate statistics (e.g., number of susceptibles in each group-hub pair), it may be possible to model transitions between equivalence classes using aggregate-level rates. For instance, the number of new infections in a hub can be approximated using a binomial or Poisson model, based on local infection pressure and population composition. These aggregated transitions can then approximate the probability of moving to a new macrostate without computing each possible path explicitly.
+		\item Topological sort the states in step $1$ in the previous section. That is, sort the transient states $\phi_{1}, \phi_{2}, \dots$ such that if $\Psi$ starts on state $\phi_{i}$, it can only move to states $\phi_{j}$ for $j > i$. This would make the $Q$ block upper-triangular. This dramatically simplifies matrix operations like exponentiation and inversion.
+		\item Compute \textit{banded} products of $Q, Q^{2}, \dots$ and $NR$. By \textit{banded} product we mean the following. Assuming that $Q$ is block upper-triangular, we might be able to get away with considering entries only near the diagonal. Note that we can compute the sum of any row of $Q$ by computing the sum of the same row in $R$ and subtracting it from $1$ (recall that $A$ is stochastic). Knowing this, we could write a program that would compute the row column product of $Q$ by some other matrix, starting from the diagonal, and going until the entries seen so far add up to some sufficiently large threshold percentage of total sum of that row of $Q$. The problem is we do not know how large of a threshold we can compute in reasonable time. This is justified by the locality of infection and movement: changes to the system state in one time step are typically small in magnitude and localized in space.
+		\item Eigenvalue approximations. Assuming that $Q$ is block upper-triangular, it may be possible to get some approximations for the eigenvalues of $Q$. Consequently, we can use the eigenvalues to approximate products by $Q$. If we can estimate the dominant eigenvalues of $Q$, we can approximate matrix functions like $(I-Q)^{-1}$ using spectral methods.
+		
+		The convergence of the fundamental matrix series $N=\sum_{n=0}^\infty Q^n$ depends on the spectral radius of $Q$, denoted $\rho(Q)$. If $\rho(Q)<< 1$, then the series converges rapidly. Approximating $N$ via spectral decomposition, by keeping only a few dominant modes, can yield good estimates of absorption probabilities. This approach is related to low-rank approximations in numerical linear algebra.
+		
+		\item Deterministic Movement Assumption (Permutation Matrices). We can assume that people travel along fixed deterministic paths (school, gym, grocery store, home, gym, ...). Formally, assume that each $Q^{(j)}$ is a permutation matrix. Every tensor product of permutation matrices is also a permutation matrix. This means that the sequence of location vectors of all people also follows a fixed cycle. This allows the infection dynamics to be analyzed over a deterministic schedule of contact networks, enabling simplifications such as periodic analysis or fixed contact graphs per time step. This transforms the stochastic spatial model into a time-inhomogeneous but tractable system.
+		
+		\item If movement Markov chains for each individual/group reach their stationary distributions quickly, we can assume individuals are distributed among hubs according to this stationary distribution at each time step. This is equivalent to quasi-equilibrium approximation: the fast variables (location distribution) are assumed to equilibrate on a faster timescale than the slow variables (health status). This allows spatial dynamics to be decoupled from infection dynamics. Mathematically, the infection process becomes a time-homogeneous Markov process over aggregated health states, with effective infection rates computed under the stationary spatial distribution.
+	\end{enumerate}
+	
+	Each of these techniques leverages a specific structural property of the model: locality of transmission, independence of individual movement, monotonicity of infection dynamics, or separation of timescales. By exploiting these, we can retain the model’s descriptive power while making long-term behavior analyzable without resorting exclusively to simulation.
+	
+	
+	\section{Conclusion}
+	Our primary goal in this work has been to understand the long-term dynamics of a spatial SIR model with individual mobility—and, critically, to compute the distribution of final recovered individuals without resorting to Monte Carlo simulation. While simulation-based approaches are widely used and relatively straightforward to implement, they can obscure the precise structure and behavior of the underlying Markov process. We remain interested in developing direct, analytical or algorithmic strategies for computing the matrix $B=NR$, which fully characterizes the distribution of long-term outcomes.
+	
+	We proposed several potential future directions to achieve this. These include exploiting the sparsity or block structure of the transient state matrix $Q$, exploring deterministic movement schemes (e.g., cyclic permutations), or leveraging symmetry and equivalence classes more deeply to reduce the effective state space. These strategies aim to make direct computation tractable, even in moderately sized systems.
+	
+	One of the major contributions of this model, relative to the classical SIR framework, is its explicit incorporation of localized interactions through hubs. In standard SIR models, the assumption of homogeneous mixing across the entire population can mask critical spatial and structural effects. By analyzing multiple hubs, each with their own infection rates and interaction patterns, we reveal subtle dynamics such as the role of superspreader hubs, local saturation effects, and the influence of individual mobility patterns on global outcomes. In particular, we find that changes in transmission parameters at a single hub can have cascading effects on the entire system, a phenomenon that is invisible under uniform mixing assumptions.
+	
+	The Monte Carlo simulations we performed, while not the ultimate analytical goal, were informative in validating model behavior. They confirmed that increasing the heterogeneity in movement and transmission amplifies stochastic effects, particularly near the epidemic threshold $R_0=1$. Moreover, they demonstrate that the number of recovered individuals is not merely a function of global averages like $\beta$ and $\gamma$, but also of where and how the infection spreads through the network of hubs.
+	
+	In sum, this project highlights both the richness of epidemic dynamics in spatially structured populations and the importance of developing computational tools that go beyond simulation to leverage the full structure of the underlying stochastic model.
+	
+	\newpage
+	\addcontentsline{toc}{section}{Works Cited}
+	\section*{Works Cited}
+	
+	\begin{enumerate}
+		
+		\item SNS Insider. (2024). \textit{Healthcare Market Size Worth US \$44.76 Trillion by 2032: Continuous Advancements in Biotechnology, Pharmaceuticals Propels Growth}. GlobeNewswire. \href{https://www.globenewswire.com/news-release/2024/08/01/2923001/0/en/Healthcare-Market-Size-Worth-US-44-760-73-Billion-By-2032-Continuous-Advancements-in-Biotechnology-Pharmaceuticals-Propels-Growth-Research-by-SNS-Insider.html}{[link]}
+		
+		\item Ikuta, K. S., Swetschinski, L., Robles Aguilar, G., Gray, A., Han, C., et al. (2022). \textit{Global mortality associated with 33 bacterial pathogens in 2019: A systematic analysis for the Global Burden of Disease Study 2019}. The Lancet, \textbf{400}(10344), 2221–2248. \href{https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(22)02185-7/fulltext}{[link]}
+		
+		\item Nussbaumer-Streit, B., Mayr, V., Dobrescu, A. I., Chapman, A., Persad, E., et al. (2020). \textit{Quarantine alone or in combination with other public health measures to control COVID-19: A rapid review}. Cochrane Database of Systematic Reviews, \textbf{4}, CD013574. \href{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7141753/}{[link]}
+		
+		\item Wu, J. T., Leung, K., \& Leung, G. M. (2020). \textit{Nowcasting and forecasting the potential domestic and international spread of the 2019-nCoV outbreak originating in Wuhan, China: A modelling study}. The Lancet, \textbf{395}(10225), 689–697. \href{https://www.nature.com/articles/s41591-020-0822-7}{[link]}
+		
+		\item World Bank. (2021). \textit{An Introduction to Deterministic Infectious Disease Models}. \href{https://documents1.worldbank.org/curated/en/888341625223820901/pdf/An-Introduction-to-Deterministic-Infectious-Disease-Models.pdf}{[link]}
+		
+		\item Chow, C. C., Chang, J. C., Gerkin, R. C., \& Vattikuti, S. (2011). \textit{Multi-scale modeling of infectious disease dynamics: Model comparisons and applications to COVID-19}. Journal of Mathematical Biology, \textbf{63}(2), 219–237. \href{https://www.sciencedirect.com/science/article/abs/pii/S0022519311004760}{[link]}
+		
+		\item McCormack, M. P., Smirnova, A., \& Chowell, G. (2022). \textit{Mathematical modeling of COVID-19 transmission dynamics with a case study of the 2020 outbreak in Wuhan, China}. Frontiers in Physics, \textbf{8}, 261. \href{https://pmc.ncbi.nlm.nih.gov/articles/PMC9698251}{[link]}
+		
+		\item Calvetti, D., Hoover, A. P., Rose, J., \& Somersalo, E. (2020). \textit{Metapopulation modeling of COVID-19 spreading: Considerations on intervention measures}. Frontiers in Physics, \textbf{8}, 261. \href{https://www.frontiersin.org/journals/physics/articles/10.3389/fphy.2020.00261/full}{[link]}
+		
+		\item Goel, R. R., Haruna, S. A., \& Kalle, C. (2020). \textit{Analyzing and modeling disease spread on networks: COVID-19 as a case study}. IEEE Access, \textbf{8}, 139719–139734. \href{https://ieeexplore.ieee.org/document/9381457}{[link]}
+		
+		\item Levin, D. A., Peres, Y., \& Wilmer, E. L. (2017). \textit{Markov Chains and Mixing Times} (2nd ed.). American Mathematical Society.
+		
+	\end{enumerate}
+	
+	
+	
+	
+	
+	\newpage
+	\addcontentsline{toc}{section}{Notation Index}
+	\section*{Notation Index}
+	We employ the following convention. If $f$ is some object of study, we use superscripts in brackets, $f^{(i)}$, to specify $f$ to a particular individual or group. We use subscripts, $f_{h}$ to specify $f$ to a specific hub. We use function notation, $f(t)$ to specify $f$ to a particular point in time
+	\begin{description}[align=left, labelwidth=3cm, labelsep=1em, leftmargin=!]
+		\item[$\mathcal{N}$] Set of individuals; let $N = |\mathcal{N}|$ denote the total number of individuals.
+		\item[$\mathcal{H}$] Set of hubs (e.g., schools, homes, gyms); let $H = |\mathcal{H}|$.
+		\item[$\mathcal{S} = \{S,I,R\}$] Epidemiological states: Susceptible, Infected, Recovered.
+		\item[$X^{(i)}(t)$] Health state of individual $i$ at time $t$.
+		\item[$L^{(i)}(t)$] Location (hub) of individual $i$ at time $t$.
+		\item[$P^{(i)}$] Transition matrix for individual $i$, where the entry. $P^{(i)}_{jk}$ represents the probability of moving from hub $j$ to hub $k$.
+		\item [$k$] Number of groups, each moving according to the same Markov chain.
+		\item [$G^{(j)}$] The set of individuals in the group $j$.
+		\item[$S(t)$, $I(t)$, $R(t)$] Number of susceptible, infected and recovered and total individuals in at time $t$, respectively.
+		\item[$S_h(t)$, $I_h(t)$, $R_h(t)$] Number of susceptible, infected, recovered and total individuals in hub $h$ at time $t$, respectively.
+		\item[$S^{(j)}_h(t)$, $I^{(j)}_h(t)$, $R^{(j)}_h(t)$] Number of susceptible, infected, recovered and total individuals in hub $h$ at time $t$, respectively.
+		\item[$\mathcal{X}$] State space of the system, where $\mathcal = (\mathcal{S} \times \mathcal{H})^{\mathcal{N}}$.
+		\item[$\Phi(t)$] Overall system state at time $t$, namely 
+		$\Phi(t)=\{(X_i(t), L_i(t))\}_{i\in\mathcal{N}}$.
+		\item[$\Psi(t)$] Quotient Markov chain value at time $t$, namely 
+		$\Psi=\{((S^{(1)}_{h}, I^{(1)}_{h}, R^{(1)}_{h}), \dots, (S^{(k)}_{h}, I^{(k)}_{h}, R^{(k)}_{h}))\}_{h\in\mathcal{H}}$.
+		\item[$\lambda_h(t)$] Instantaneous infection rate in hub $h$ at time $t$, defined by 
+		$\lambda_h(t)=\beta_h\dfrac{\, I_h(t)}{N_h(t)}$.
+	\end{description}
+	\newpage
+	
+	\appendix
+	\section*{Appendix: Supplementary Definitions and Results}
+	\addcontentsline{toc}{section}{Appendix: Supplementary Definitions and Results}
+	This section contains well known definitions and results from the theory of Markov chains. We include this because some of our analysis relies on these results.
+	\paragraph{\textbf{Tensor Product of Matrices:}}
+	Let $A \in \mathbb{R}^{m \times n}$ and $B \in \mathbb{R}^{p \times q}$. The tensor (or Kronecker) product $A \otimes B$ is the $mp \times nq$ block matrix defined by
+	\[
+	A \otimes B = \begin{bmatrix}
+		a_{11}B & \cdots & a_{1n}B \\
+		\vdots & \ddots & \vdots \\
+		a_{m1}B & \cdots & a_{mn}B
+	\end{bmatrix}.
+	\]
+	In this model, the joint transition matrix for all individuals’ location processes is constructed as $P = P^{(1)} \otimes \cdots \otimes P^{(N)}$.
+	
+	\paragraph{\textbf{Communication Class:}}
+	Two states $x, y$ in a Markov chain are said to communicate if each is reachable from the other with positive probability. The communication class of $x$ is the set of all such $y$.
+	
+	\paragraph{\textbf{Recurrent and Transient States:}}
+	A state is \textit{recurrent} if the chain returns to it infinitely often with probability 1. It is \textit{transient} if the probability of eventually returning is strictly less than 1.
+	
+	\paragraph{\textbf{Absorbing Set:}}
+	A subset $\mathcal{A}$ of the state space is absorbing if, once entered, the chain remains in $\mathcal{A}$ forever.
+	
+	\paragraph{\textbf{Lumping and Quotient Chain:}}
+	Given an equivalence relation $\sim$ on the state space $\mathcal{X}$ of a Markov chain $\Phi$, the process $\Psi(t) = [\Phi(t)]$ on the quotient space $\mathcal{X}/\sim$ is a Markov chain (i.e., $\Phi$ is lumpable) if the transition probabilities between equivalence classes are independent of the representative.
+	
+	\paragraph{\textbf{Canonical Form of a Transition Matrix:}}
+	If the states of a finite Markov chain are ordered so that transient states precede absorbing states, the transition matrix takes the block form:
+	\[
+	A = \begin{pmatrix}
+		Q & R \\
+		0 & I
+	\end{pmatrix}
+	\]
+	where $Q$ governs transient transitions, $R$ transitions to absorbing states, and $I$ is the identity on absorbing states.
+	
+	\paragraph{\textbf{Fundamental Matrix:}}
+	For a substochastic matrix $Q$ from the canonical form, the matrix
+	\[
+	N = (I - Q)^{-1}
+	\]
+	exists and gives the expected number of visits to transient states before absorption.
+	
+	\paragraph{\textbf{Absorption Probability Matrix:}}
+	Given the matrix $R$ of transient-to-absorbing transitions, the matrix
+	\[
+	B = NR
+	\]
+	gives the probability of absorption into each absorbing state when starting from each transient state.
+	
+	\paragraph{\textbf{Remark, State Aggregation:}}
+	In the present model, equivalence classes aggregate microstates by counting susceptible, infected, and recovered individuals per group and hub. This lumping retains all information relevant to the long-term disease outcome.
+\end{document}
